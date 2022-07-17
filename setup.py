@@ -50,33 +50,24 @@ class CMakeBuildExt(build_ext):
 
         os.makedirs(self.build_temp, exist_ok=True)
 
+        env_var_prefix = 'SQS_'
+        # we allow overloading cmake compiler options
+        # for windows builds CMake chooses bad default on azure-pipelines
+        # we implement it as a whitelist
+        whitelist_env_var_name = 'SQS_FORWARD_WHITELIST'
         for ext in self.extensions:
             extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
             cfg = 'Debug' if ext.debug else 'Release'
             cmake_args = [
                 f'-DCMAKE_BUILD_TYPE={cfg}',
-                # Ask CMake to place the resulting library in the directory
-                # containing the extension
                 f'-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{cfg.upper()}={extdir}',
-                # Other intermediate static libraries are placed in a
-                # temporary build directory instead
                 f'-DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_{cfg.upper()}={self.build_temp}',
-                # Hint CMake to use the same Python executable that
-                # is launching the build, prevents possible mismatching if
-                # multiple versions of Python are installed
                 f'-DPython3_EXECUTABLE={sys.executable}',
-                # Add other project-specific CMake arguments if needed
-                # ...
-                '-DUSE_MPI={}'.format("ON" if self.with_mpi else "OFF"),
-                # '-DCMAKE_CXX_FLAGS_{}={}'.format(cfg.upper(),  )
+                f'-DUSE_MPI={"ON" if self.with_mpi else "OFF"}',
             ]
+
             cmake_cxx_flags = ''
 
-            env_var_prefix = 'SQS_'
-            # we allow overloading cmake compiler options
-            # for windows builds CMake chooses bad default on azure-pipelines
-            # we implement it as a whitelist
-            whitelist_env_var_name = 'SQS_FORWARD_WHITELIST'
             cmake_var_whitelist = os.environ.get(whitelist_env_var_name, None)
             cmake_var_whitelist = cmake_var_whitelist \
                 if cmake_var_whitelist is None \
@@ -90,15 +81,18 @@ class CMakeBuildExt(build_ext):
                     cmake_cxx_flags += f' {env_var_value}'
                 elif env_var_name.startswith('CMAKE'):
 
-                    if cmake_var_whitelist is not None:
-                        if env_var_name not in cmake_var_whitelist:
-                            print(f'sqsgenerator.setup: Blocking env-var "{env_var_name}" '
-                                  f'since it is not whitelisted in {whitelist_env_var_name}')
-                            continue
+                    if (
+                        cmake_var_whitelist is not None
+                        and env_var_name not in cmake_var_whitelist
+                    ):
+                        print(f'sqsgenerator.setup: Blocking env-var "{env_var_name}" '
+                              f'since it is not whitelisted in {whitelist_env_var_name}')
+                        continue
                     print(f'sqsgenerator.setup: Forwarding env-var "{env_var_name}" -> "-D{env_var_name}"')
                     cmake_args.append(f'-D{env_var_name}={env_var_value}')
-                m = re.match(f'{env_var_prefix}(?P<varname>\w+)', env_var_name)
-                if m:
+                if m := re.match(
+                    f'{env_var_prefix}(?P<varname>\w+)', env_var_name
+                ):
                     env_var_name_real = m.groupdict()['varname']
                     print(f'sqsgenerator.setup: Forwarding env-var "{env_var_name}" -> "-D{env_var_name_real}"')
                     cmake_args.append(f'-D{env_var_name_real}={env_var_value}')

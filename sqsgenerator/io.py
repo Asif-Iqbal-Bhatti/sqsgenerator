@@ -68,9 +68,7 @@ def default_adapter():
     :return: the default
     :rtype: Feature or None
     """
-    for a in known_adapters:
-        if have_feature(a): return a
-    return None
+    return next((a for a in known_adapters if have_feature(a)), None)
 
 
 def supported_formats(feature=None):

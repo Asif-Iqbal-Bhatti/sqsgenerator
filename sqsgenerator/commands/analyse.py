@@ -51,7 +51,7 @@ def first(iterable):
 
 
 def override(b: dict, factory=AttrDict, **kwargs):
-    return factory({**b, **kwargs})
+    return factory(b | kwargs)
 
 
 def make_default(f, **kwargs):

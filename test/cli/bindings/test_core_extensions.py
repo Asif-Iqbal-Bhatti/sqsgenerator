@@ -46,7 +46,7 @@ class TestUtils(unittest.TestCase):
         num_atoms = len(self.structure)
         superstructure = make_supercell(self.structure, scale, scale, scale)
 
-        total_num_of_atoms = scale*scale*scale*num_atoms
+        total_num_of_atoms = scale**2 * scale * num_atoms
 
         composition = {random.choice(symbols): random.randint(1, floor(total_num_of_atoms/num_species)) for _ in range(num_species-1)}
         composition[random.choice(list(set(symbols) - set(composition.keys())))] = total_num_of_atoms - sum(composition.values())

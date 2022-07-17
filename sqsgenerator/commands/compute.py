@@ -68,7 +68,7 @@ def format_seconds(seconds: float) -> str:
     for uval, label in units.items():
         if seconds > uval:
             q, r = divmod(seconds, uval)
-            result.append(f'{q:.0f} {label}{"s" if not isclose(q, 1.0) else ""}')
+            result.append(f'{q:.0f} {label}{"" if isclose(q, 1.0) else "s"}')
             seconds -= q*uval
     if not isclose(seconds, 0.0):
         result += ['and', f'{seconds:.3f} seconds']

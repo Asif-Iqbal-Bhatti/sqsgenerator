@@ -50,7 +50,7 @@ class TestRunIterationCommand(unittest.TestCase):
         for compression in compression_to_file_extension.keys():
 
             r = self.cli_runner.invoke(cli, ['run', 'iteration', '--export', '--no-minimal', '--similar', '--compress', compression])
-            archive_name = 'sqs.{}'.format(compression_to_file_extension.get(compression))
+            archive_name = f'sqs.{compression_to_file_extension.get(compression)}'
 
             if r.exit_code != 0:
                 print(r.output, r.exit_code, r.stderr)
