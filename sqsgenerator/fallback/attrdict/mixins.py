@@ -96,10 +96,11 @@ class Attr(Mapping):
 
         NOTE: Addition is not commutative. a + b != b + a.
         """
-        if not isinstance(other, Mapping):
-            return NotImplemented
-
-        return self._constructor(merge(self, other), self._configuration())
+        return (
+            self._constructor(merge(self, other), self._configuration())
+            if isinstance(other, Mapping)
+            else NotImplemented
+        )
 
     def __radd__(self, other):
         """
@@ -109,10 +110,11 @@ class Attr(Mapping):
 
         NOTE: Addition is not commutative. a + b != b + a.
         """
-        if not isinstance(other, Mapping):
-            return NotImplemented
-
-        return self._constructor(merge(other, self), self._configuration())
+        return (
+            self._constructor(merge(other, self), self._configuration())
+            if isinstance(other, Mapping)
+            else NotImplemented
+        )
 
     def _build(self, obj):
         """
@@ -130,9 +132,7 @@ class Attr(Mapping):
             obj = self._constructor(obj, self._configuration())
         elif (isinstance(obj, Sequence) and
               not isinstance(obj, (six.string_types, six.binary_type))):
-            sequence_type = getattr(self, '_sequence_type', None)
-
-            if sequence_type:
+            if sequence_type := getattr(self, '_sequence_type', None):
                 obj = sequence_type(self._build(element) for element in obj)
 
         return obj

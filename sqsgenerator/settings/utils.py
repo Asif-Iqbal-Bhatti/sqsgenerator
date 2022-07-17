@@ -69,7 +69,7 @@ def to_internal_composition_specs(composition: dict, structure: Structure):
                 raise BadSettings('You have distribute at least one atom')
             return {ALL_SITES: v}
         elif isinstance(v, dict):
-            if not all(s in initial_species for s in v.keys()):
+            if any(s not in initial_species for s in v.keys()):
                 raise BadSettings('You cannot distribute atoms on a sublattice which is not specified in the initial '
                                   'structure')
             return {symbol_to_z_with_zero(s): parse_number_of_atoms(n) for s, n in v.items()}

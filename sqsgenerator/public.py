@@ -106,7 +106,7 @@ def extract_structures(results: Settings, base_structure: T.Optional[Structure] 
     raw_data = results['configurations'] if 'configurations' in results else results
 
     def get_configuration(conf):
-        return conf if not isinstance(conf, dict) else conf['configuration']
+        return conf['configuration'] if isinstance(conf, dict) else conf
 
     structures = {
         rank:

@@ -21,15 +21,10 @@ def merge(left, right):
 
     NOTE: This is not commutative (merge(a,b) != merge(b,a)).
     """
-    merged = {}
-
     left_keys = frozenset(left)
     right_keys = frozenset(right)
 
-    # Items only in the left Mapping
-    for key in left_keys - right_keys:
-        merged[key] = left[key]
-
+    merged = {key: left[key] for key in left_keys - right_keys}
     # Items only in the right Mapping
     for key in right_keys - left_keys:
         merged[key] = right[key]

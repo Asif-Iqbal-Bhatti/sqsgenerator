@@ -76,10 +76,7 @@ def read_max_output_configurations(settings: AttrDict):
 def read_structure(settings: AttrDict) -> Structure:
     needed_fields = {'lattice', 'coords', 'species'}
     s = settings.structure
-    structure = None
-    if isinstance(s, Structure):
-        structure = s
-
+    structure = s if isinstance(s, Structure) else None
     if have_feature(Feature.ase) and structure is None:
         from ase import Atoms
         if isinstance(s, Atoms):
@@ -162,7 +159,7 @@ def read_shell_distances(settings: AttrDict):
     if not all(map(isa(numbers.Real), settings.shell_distances)):
         raise BadSettings('All shell distances must be real values')
     distances = list(filter(lambda d: not np.isclose(d, 0.0), settings.shell_distances))
-    if len(distances) < 1:
+    if not distances:
         raise BadSettings('You need to specify at least one shell-distance')
     for distance in distances:
         if distance < 0.0:
@@ -186,7 +183,7 @@ def read_shell_weights(settings: AttrDict):
         for shell, weight in settings.shell_weights.items()
     }
 
-    for shell in parsed_weights.keys():
+    for shell in parsed_weights:
         if shell not in allowed_indices:
             raise BadSettings(f'The shell {shell} you specified is not allowed. Allowed values are {allowed_indices}')
     return settings.shell_weights
@@ -257,9 +254,8 @@ def read_threads_per_rank(settings: AttrDict):
     if isinstance(settings.threads_per_rank, (float, int)):
         return [converter(settings.threads_per_rank)]
     if isinstance(settings.threads_per_rank, (list, tuple, np.ndarray)):
-        if len(settings.threads_per_rank) != 1:
-            if not have_mpi_support():
-                raise BadSettings('The module sqsgenerator.core.iteration was not compiled with MPI support')
+        if len(settings.threads_per_rank) != 1 and not have_mpi_support():
+            raise BadSettings('The module sqsgenerator.core.iteration was not compiled with MPI support')
         return list(map(converter, settings.threads_per_rank))
 
     raise BadSettings('Cannot interpret "threads_per_rank" setting.')
@@ -286,11 +282,11 @@ def process_settings(settings: AttrDict, params: T.Optional[T.Set[str]] = None, 
     params = params if params is not None else set(parameter_list())
     last_needed_parameter = max(params, key=parameter_index)
     ignore = set(ignore)
-    for index, (param, processor) in enumerate(__parameter_registry.items()):
-        if param not in params:
-            # we can only skip this parameter if None of the other parameters depends on param
-            if parameter_index(param) > parameter_index(last_needed_parameter):
-                continue
+    for param, processor in __parameter_registry.items():
+        if param not in params and parameter_index(param) > parameter_index(
+            last_needed_parameter
+        ):
+            continue
         if param in ignore:
             continue
         settings[param] = processor(settings)
