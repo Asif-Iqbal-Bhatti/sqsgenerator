@@ -58,7 +58,12 @@ def pretty_print(*objects: T.Any, show: bool = True, paginate: str = 'auto', **k
     string = buf.getvalue()
     if paginate == 'auto':
         paginate = string.count(os.linesep) >= console_height
-    printer = functools.partial(click.echo, file=sys.stdout, nl=False) if not paginate else click.echo_via_pager
+    printer = (
+        click.echo_via_pager
+        if paginate
+        else functools.partial(click.echo, file=sys.stdout, nl=False)
+    )
+
     return printer(buf.getvalue()) if show else buf.getvalue()
 
 

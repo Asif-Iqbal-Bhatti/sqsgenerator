@@ -106,9 +106,7 @@ class TestParamsCommand(unittest.TestCase):
 
             if isinstance(before_value, np.ndarray):
                 np.testing.assert_array_almost_equal(before_value, after_value)
-            elif isinstance(before_value, Structure):
-                pass
-            else:
+            elif not isinstance(before_value, Structure):
                 self.assertEqual(before_value, after_value)
 
 if __name__ == '__main__':

@@ -71,7 +71,7 @@ def set_core_log_level(level: int = logging.WARNING) -> T.NoReturn:
 
 
 def get_function_logger(f: T.Callable) -> logging.Logger:
-    return logging.getLogger(f.__module__ + '.' + f.__name__)
+    return logging.getLogger(f'{f.__module__}.{f.__name__}')
 
 
 set_core_log_level(logging.WARNING)

@@ -19,7 +19,7 @@ def parameter(name: str, default: T.Optional[T.Any] = Default.NoDefault, require
     if key is None: key = name
     get_required = lambda *_: required if isinstance(required, bool) else required
     get_key = lambda *_: key if isinstance(key, str) else key
-    get_default = (lambda *_: default) if not callable(default) else default
+    get_default = default if callable(default) else (lambda *_: default)
 
     have_default = default != Default.NoDefault
 
@@ -33,11 +33,10 @@ def parameter(name: str, default: T.Optional[T.Any] = Default.NoDefault, require
                 if is_required:
                     if not have_default:
                         raise BadSettings(f'Required parameter "{name}" was not found', parameter=name)
-                    else:
-                        # a default is needed but found
-                        df = get_default(settings)
-                        get_function_logger(f).info(f'Parameter "{name}" was not found defaulting to: "{df}"')
-                        return df
+                    # a default is needed but found
+                    df = get_default(settings)
+                    get_function_logger(f).info(f'Parameter "{name}" was not found defaulting to: "{df}"')
+                    return df
             else:
                 # we catch the exception here and raise it again, to inject the parameter information automatically
                 try: processed_value = f(settings)

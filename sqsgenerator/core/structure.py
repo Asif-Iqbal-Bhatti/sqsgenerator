@@ -187,7 +187,7 @@ class Structure(Structure_):
 
         which = which or tuple(range(len(self)))
         species = list(species)
-        if len(species) < 1:
+        if not species:
             raise ValueError('Cannot create an empty structure')
         if len(which) != len(species):
             raise ValueError('Number of species does not match the number of specified atoms')
